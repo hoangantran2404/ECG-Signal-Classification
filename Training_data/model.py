@@ -12,7 +12,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# --- 1. CONFIG & DATASET ---
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
@@ -83,7 +82,7 @@ test_dataloader = DataLoader(dataset=test_dataset,
                              num_workers=NUM_WORKERS, 
                              pin_memory=True)
 
-# --- 2. CÁC KHỐI XÂY DỰNG TCN (Building Blocks) ---
+
 
 class Chomp1d(nn.Module):
     def __init__(self, chomp_size):
@@ -135,7 +134,6 @@ class TemporalBlock(nn.Module):
             residual = self.reduction_sample_size(x)
         return self.relu(out + residual)
 
-# --- 3. MODEL TCN ---
 
 class ECG_TCN_Explicit(nn.Module):
     def __init__(self, num_inputs, num_classes, kernel_size=5, dropout=0.1):  
@@ -166,7 +164,6 @@ class ECG_TCN_Explicit(nn.Module):
         x = self.classifier(x)
         return x
 
-# --- 4. TRAINING FUNCTIONS ---
 
 def accuracy_fn(y_pred, y):
     accuracy = torch.eq(y, y_pred).sum().item()
@@ -206,7 +203,7 @@ def test_step(model,dataloader,loss_fn,accuracy_fn,device):
         test_acc = test_acc/len(dataloader)
     return test_loss,test_acc
 
-# --- HAM TRAIN MOI: LUU MODEL TOT NHAT (SAVE BEST) ---
+
 def train_process(model, train_loader, test_loader, loss_fn, optimizer, accuracy_fn, device, epochs, scheduler=None):
     results = {"train_loss":[], "train_acc":[], "test_loss":[], "test_acc":[]}
     
@@ -221,8 +218,6 @@ def train_process(model, train_loader, test_loader, loss_fn, optimizer, accuracy
             
         print(f"Epoch: {epoch+1} | Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.2f}%")
         
-        # --- LOGIC SAVE BEST MODEL ---
-        # Neu ket qua Test Acc cao hon ky luc cu -> Luu lai ngay lap tuc
         if test_acc > best_acc:
             best_acc = test_acc
             print(f"--> Found New Best Model! Acc: {best_acc:.2f}%. Saving...")
@@ -238,7 +233,6 @@ def train_process(model, train_loader, test_loader, loss_fn, optimizer, accuracy
     print(f"Training Done. Best Accuracy reached: {best_acc:.2f}%")
     return results
 
-# --- 5. EXECUTION ---
 
 torch.manual_seed(42)
 if torch.cuda.is_available():
@@ -246,7 +240,6 @@ if torch.cuda.is_available():
 
 model_tcn = ECG_TCN_Explicit(num_inputs=1, num_classes=5, kernel_size=5, dropout=0.1).to(device)
 
-# --- QUAN TRONG: LOAD MODEL CU NEU CO ---
 if MODEL_SAVE_PATH.exists():
     print(f"==================================================")
     print(f"Found existing model: {MODEL_SAVE_PATH}")
