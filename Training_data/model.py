@@ -94,8 +94,6 @@ class Chomp1d(nn.Module):
 class TemporalBlock(nn.Module):
     def __init__(self, in_shape, out_shape, kernel_size, stride, dilation, padding, dropout=0.2):
         super(TemporalBlock, self).__init__()
-        
-        # Layer 1
         self.conv1 = nn.Conv1d(in_channels = in_shape, 
                                out_channels = out_shape, 
                                kernel_size=kernel_size, 
@@ -307,7 +305,6 @@ def plot_confusion_matrix(model, dataloader):
     plt.title('Confusion Matrix')
 
 plot_results(model_tcn_result)
-# Load lai cai tot nhat de ve Matrix
 model_tcn.load_state_dict(torch.load(MODEL_SAVE_PATH, map_location=device))
 plot_confusion_matrix(model_tcn, test_dataloader) 
 plt.savefig("ECG_matrix.png")
