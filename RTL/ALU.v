@@ -28,8 +28,6 @@ module ALU #(
     input wire signed [DATA_WIDTH-1:0]  IA_in,
     input wire [2:0]                    CTRL_counter_in,
 
-
-
     output wire signed [DATA_WIDTH-1:0] ALU_data_out,
     output wire                         ALU_data_valid_out
 );
@@ -80,6 +78,7 @@ module MAC #(
     wire signed [DATA_WIDTH-1:0] out_wr;
     wire signed [DATA_WIDTH-1:0] out1_wr;
 
+    reg [2:0]                   CTRL_delay_counter_rg;
     reg signed [DATA_WIDTH-1:0] sum_stage1_rg;
     reg signed [DATA_WIDTH-1:0] accumulation_rg;
     reg signed [DATA_WIDTH-1:0] multiplier_rg;
@@ -87,10 +86,10 @@ module MAC #(
     reg                         sign_rg;
 //Clock1
     
-    assign multiplicand_wr  =       (Filter_in<0) ? (-Filter_in) : Filter_in;                                         
-    assign multiplier_wr    =       (IA_in<0) ? (-IA_in) : IA_in;                                 
-    assign sign_wr          =       (Filter_in[DATA_WIDTH-1] ^ IA_in[DATA_WIDTH-1]);                       
-
+    assign multiplicand_wr  =       (Filter_in<0) ? (-Filter_in) : Filter_in;                                             
+    assign multiplier_wr    =       (IA_in<0) ? (-IA_in) : IA_in;                                   
+    assign sign_wr          =       (Filter_in[DATA_WIDTH-1] ^ IA_in[DATA_WIDTH-1]);         
+                                                  
     assign partial_sum0_wr = multiplier_wr[0] ? ($signed(multiplicand_wr) << 0) : 0;
     assign partial_sum1_wr = multiplier_wr[1] ? ($signed(multiplicand_wr) << 1) : 0;
     assign partial_sum2_wr = multiplier_wr[2] ? ($signed(multiplicand_wr) << 2) : 0;
@@ -116,31 +115,26 @@ module MAC #(
 
     assign sum_final_wr = (sign_rg)? $signed(sum_stage2_wr[21:6]+sum_stage2_wr[5:5]): 
                                     -$signed(sum_stage2_wr[21:6]+sum_stage2_wr[5:5]); 
-    assign out_wr  = sum_final_wr + accumulation_rg;
+    assign out_wr  = sum_final_wr + ((CTRL_delay_counter_rg==0)? 16'd0: accumulation_rg);
 
     assign MAC_out =  out_wr;
-    assign MAC_valid_out = (CTRL_counter_in == 4) ? 1 : 0;
+    assign MAC_valid_out = (CTRL_delay_counter_rg == 4) ? 1 : 0;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            accumulation_rg <= 0;
-            multiplier_rg   <= 0;
-            multiplicand_rg <= 0;
-            sum_stage1_rg   <= 0;                                  
-            sign_rg         <= 0;
-            MAC_out         <= 0;
-            MAC_valid_out   <= 0;
+            accumulation_rg         <= 0;
+            multiplier_rg           <= 0;
+            multiplicand_rg         <= 0;
+            sum_stage1_rg           <= 0;                                  
+            sign_rg                 <= 0;
+            CTRL_delay_counter_rg   <= 0;
         end else begin
             sum_stage1_rg           <= sum_stage1_wr;                                                                                      
             multiplicand_rg         <= multiplicand_wr;
             multiplier_rg           <= multiplier_wr;
             sign_rg                 <= sign_wr;
-
-            if(CTRL_counter_in == 0) begin
-                accumulation_rg         <= 0;
-            end else begin
-                accumulation_rg         <= out_wr; 
-            end
+            CTRL_delay_counter_rg   <= CTRL_counter_in;
+            accumulation_rg         <= out_wr; 
         end
     end
 endmodule
