@@ -83,22 +83,22 @@ module AccumulatorBuffer #(
     //==================================================//
     //               Combinational Logic                //
     //==================================================//
-    assign BRAM_0_in_wr = (CTRL_ia_counter_rg == 0)? TA0_rg :  BRAM_0_out_wr + TA0_rg; 
-    assign BRAM_1_in_wr = (CTRL_ia_counter_rg == 0)? TA1_rg :  BRAM_1_out_wr + TA1_rg;
-    assign BRAM_2_in_wr = (CTRL_ia_counter_rg == 0)? TA2_rg :  BRAM_2_out_wr + TA2_rg;
-    assign BRAM_3_in_wr = (CTRL_ia_counter_rg == 0)? TA3_rg :  BRAM_3_out_wr + TA3_rg;
-    assign BRAM_4_in_wr = (CTRL_ia_counter_rg == 0)? TA4_rg :  BRAM_4_out_wr + TA4_rg;
-    assign BRAM_5_in_wr = (CTRL_ia_counter_rg == 0)? TA5_rg :  BRAM_5_out_wr + TA5_rg;
-    assign BRAM_6_in_wr = (CTRL_ia_counter_rg == 0)? TA6_rg :  BRAM_6_out_wr + TA6_rg;
-    assign BRAM_7_in_wr = (CTRL_ia_counter_rg == 0)? TA7_rg :  BRAM_7_out_wr + TA7_rg;
-    assign BRAM_8_in_wr = (CTRL_ia_counter_rg == 0)? TA8_rg :  BRAM_8_out_wr + TA8_rg;
-    assign BRAM_9_in_wr = (CTRL_ia_counter_rg == 0)? TA9_rg :  BRAM_9_out_wr + TA9_rg;
-    assign BRAM_10_in_wr = (CTRL_ia_counter_rg == 0)? TA10_rg :  BRAM_10_out_wr + TA10_rg;
-    assign BRAM_11_in_wr = (CTRL_ia_counter_rg == 0)? TA11_rg :  BRAM_11_out_wr + TA11_rg;
-    assign BRAM_12_in_wr = (CTRL_ia_counter_rg == 0)? TA12_rg :  BRAM_12_out_wr + TA12_rg;
-    assign BRAM_13_in_wr = (CTRL_ia_counter_rg == 0)? TA13_rg :  BRAM_13_out_wr + TA13_rg;
-    assign BRAM_14_in_wr = (CTRL_ia_counter_rg == 0)? TA14_rg :  BRAM_14_out_wr + TA14_rg;
-    assign BRAM_15_in_wr = (CTRL_ia_counter_rg == 0)? TA15_rg :  BRAM_15_out_wr + TA15_rg;
+    assign BRAM_0_in_wr = (CTRL_ia_counter_rg == 0)? TA0_rg :  $signed(BRAM_0_out_wr) + $signed(TA0_rg); 
+    assign BRAM_1_in_wr = (CTRL_ia_counter_rg == 0)? TA1_rg :  $signed(BRAM_1_out_wr) + $signed(TA1_rg);
+    assign BRAM_2_in_wr = (CTRL_ia_counter_rg == 0)? TA2_rg :  $signed(BRAM_2_out_wr) + $signed(TA2_rg);
+    assign BRAM_3_in_wr = (CTRL_ia_counter_rg == 0)? TA3_rg :  $signed(BRAM_3_out_wr) + $signed(TA3_rg);
+    assign BRAM_4_in_wr = (CTRL_ia_counter_rg == 0)? TA4_rg :  $signed(BRAM_4_out_wr) + $signed(TA4_rg);
+    assign BRAM_5_in_wr = (CTRL_ia_counter_rg == 0)? TA5_rg :  $signed(BRAM_5_out_wr) + $signed(TA5_rg);
+    assign BRAM_6_in_wr = (CTRL_ia_counter_rg == 0)? TA6_rg :  $signed(BRAM_6_out_wr) + $signed(TA6_rg);
+    assign BRAM_7_in_wr = (CTRL_ia_counter_rg == 0)? TA7_rg :  $signed(BRAM_7_out_wr) + $signed(TA7_rg);
+    assign BRAM_8_in_wr = (CTRL_ia_counter_rg == 0)? TA8_rg :  $signed(BRAM_8_out_wr) + $signed(TA8_rg);
+    assign BRAM_9_in_wr = (CTRL_ia_counter_rg == 0)? TA9_rg :  $signed(BRAM_9_out_wr) + $signed(TA9_rg);
+    assign BRAM_10_in_wr = (CTRL_ia_counter_rg == 0)? TA10_rg :  $signed(BRAM_10_out_wr) + $signed(TA10_rg);
+    assign BRAM_11_in_wr = (CTRL_ia_counter_rg == 0)? TA11_rg :  $signed(BRAM_11_out_wr) + $signed(TA11_rg);
+    assign BRAM_12_in_wr = (CTRL_ia_counter_rg == 0)? TA12_rg :  $signed(BRAM_12_out_wr) + $signed(TA12_rg);
+    assign BRAM_13_in_wr = (CTRL_ia_counter_rg == 0)? TA13_rg :  $signed(BRAM_13_out_wr) + $signed(TA13_rg);
+    assign BRAM_14_in_wr = (CTRL_ia_counter_rg == 0)? TA14_rg :  $signed(BRAM_14_out_wr) + $signed(TA14_rg);
+    assign BRAM_15_in_wr = (CTRL_ia_counter_rg == 0)? TA15_rg :  $signed(BRAM_15_out_wr) + $signed(TA15_rg);
 // Plus bias
     assign AB0_wr  = (CTRL_ia_counter_rg==in_shape)? $signed(BRAM_0_in_wr) + bias_mem[0]:16'd0;
     assign AB1_wr  = (CTRL_ia_counter_rg==in_shape)? $signed(BRAM_1_in_wr) + bias_mem[1]:16'd0;
