@@ -18,10 +18,6 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
-`timescale 1ns/1ns
-
 module PE
 #(
     parameter                                  	    DATA_WIDTH=16
@@ -33,8 +29,8 @@ module PE
 	///*** From the Controller ***///	
 	input  wire 					              	start_in,
 
-	input  wire [2:0]                               CTRL_counter_in,
-	input  wire [2:0]       	            		current_state_in,				
+	input  wire [2:0]                               CTRL_s_counter_in,
+	input wire 										load_filter_enable_in,	// turn to 1 if change to new group of filer 			
 	
     //*** From Global Buffer ***///			
 	input  wire 					            	IA_valid_in,	    //Input Activation
@@ -51,16 +47,13 @@ module PE
 );
  
 	// *************** Wire signals *************** //
-    reg signed [15:0]         			            fw_mem[4:0];
-    reg signed [15:0]         			            IA_mem[4:0];
-			    
-	wire  					           	  			D0_valid_wr;
+	reg signed [DATA_WIDTH-1:0]						ia_mem_rg	[0:4];
+	reg signed [DATA_WIDTH-1:0]						fw_mem_rg	[0:4];
 	wire signed [DATA_WIDTH-1:0]           	  		D0_wr;
-
+	integer i;
 	
 	// *************** Register signals *************** //		
     assign PE_out       = D0_wr;
-    assign PE_valid_out = D0_valid_wr;
 								
 
 	
@@ -68,42 +61,39 @@ module PE
 	ALU alu
 	(
 		.clk                    (clk                    ),
-		.rst_n                  (rst_n                  ),
-		.Filter_in              (fw_mem[CTRL_counter_in]),
-		.IA_in                  (IA_mem[CTRL_counter_in]),
-		.CTRL_counter_in        (CTRL_counter_in        ),
+		.rst_n                  (rst_n          		),
+		.ALU_valid_in			(ALU_valid_in			),
+		.Filter0_in             (fw_mem_rg[0]			),
+		.Filter1_in             (fw_mem_rg[1]			),
+		.Filter2_in             (fw_mem_rg[2]			),
+		.Filter3_in             (fw_mem_rg[3]			),
+		.Filter4_in             (fw_mem_rg[4]			),
+		.IA0_in					(ia_mem_rg[0]			),
+		.IA1_in					(ia_mem_rg[1]			),
+		.IA2_in					(ia_mem_rg[2]			),
+		.IA3_in					(ia_mem_rg[3]			),
+		.IA4_in					(ia_mem_rg[4]			),
 
-		.ALU_data_out           (D0_wr                  ),
-		.ALU_data_valid_out     (D0_valid_wr            )
+		.ALU_data_out           (D0_wr                  )
 	);
 
 	always @(posedge clk or negedge rst_n) begin
 		if (!rst_n) begin
-			fw_mem[0] <= 0;
-            fw_mem[1] <= 0;
-            fw_mem[2] <= 0;
-            fw_mem[3] <= 0;
-            fw_mem[4] <= 0;
-            
-            IA_mem[0] <= 0;
-            IA_mem[1] <= 0;
-            IA_mem[2] <= 0;
-            IA_mem[3] <= 0;
-            IA_mem[4] <= 0;
+			for(i=0;i<5;i=i+1) begin
+				fw_mem_rg[i]	<=	0;
+				ia_mem_rg[i]	<=	0;
+			end
 		end	
 		else begin			
-			if(start_in) begin
-                fw_mem[CTRL_counter_in] <= filter_in;
-            end else begin 
-                if(CTRL_counter_in == 4) begin
-                    IA_mem[0]               <= IA_mem[1];
-                    IA_mem[1]               <= IA_mem[2];
-                    IA_mem[2]               <= IA_mem[3];
-                    IA_mem[3]               <= IA_mem[4];
-                    IA_mem[4]               <= IA_in;
-                end else begin 
-                    
-                end
+			if(load_filter_enable_in&&Filter_valid_in) begin
+                fw_mem_rg[CTRL_s_counter_in] <= Filter_in;
+            end 
+            if(IA_valid_in) begin
+                ia_mem_rg[0]               <= ia_mem_rg[1];
+                ia_mem_rg[1]               <= ia_mem_rg[2];
+                ia_mem_rg[2]               <= ia_mem_rg[3];
+                ia_mem_rg[3]               <= ia_mem_rg[4];
+                ia_mem_rg[4]               <= IA_in;
             end
 		end
 	end 
