@@ -37,16 +37,6 @@ module TreeAdder #(
     reg signed [DATA_WIDTH-1:0]        sum2_rg;
     reg signed [DATA_WIDTH-1:0]        sum3_rg;
 
-    assign TreeAdder_valid_out = PE_valid_in;
-
-     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            TreeAdder_out <= 0;
-        end else if (TreeAdder_valid_out) begin
-            TreeAdder_out <= TreeAdder_wr;
-        end
-    end
-
     adder4 adder0 (
         .in0(PE0_in), 
         .in1(PE1_in), 
@@ -75,23 +65,6 @@ module TreeAdder #(
         .in3(PE15_in),
         .out(sum3_wr)
     );
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            sum0_rg <= 0; 
-            sum1_rg <= 0; 
-            sum2_rg <= 0; 
-            sum3_rg <= 0;
-            valid_stage1_rg <= 0;
-        end else begin
-            sum0_rg <= sum0_wr;
-            sum1_rg <= sum1_wr;
-            sum2_rg <= sum2_wr;
-            sum3_rg <= sum3_wr;
-            valid_stage1_rg <= PE_valid_in; 
-        end
-    end
-
     adder4 adder_final (
         .in0(sum0_rg), 
         .in1(sum1_rg), 
@@ -101,9 +74,19 @@ module TreeAdder #(
     );
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            sum0_rg <= 0; 
+            sum1_rg <= 0; 
+            sum2_rg <= 0; 
+            sum3_rg <= 0;
+            valid_stage1_rg <= 0;
             TreeAdder_out       <= 0;
             TreeAdder_valid_out <= 0;
         end else begin
+            sum0_rg <= sum0_wr;
+            sum1_rg <= sum1_wr;
+            sum2_rg <= sum2_wr;
+            sum3_rg <= sum3_wr;
+            valid_stage1_rg <= PE_valid_in; 
             TreeAdder_out       <= sum_final_wr;
             TreeAdder_valid_out <= valid_stage1_rg; 
         end
