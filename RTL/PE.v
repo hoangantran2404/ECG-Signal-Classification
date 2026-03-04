@@ -18,21 +18,16 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-module PE
-#(
+module PE #(
     parameter                                  	    DATA_WIDTH=16
-)
-(
-	input  wire                                 	clk,
-	input  wire                                 	rst_n,			
+)(
+	input wire 										clk,
+	input wire 										rst_n,
+	///*** From the Controller ***///
+	input  wire [2:0]                               CTRL_m_count_in,
+	input  wire 									load_filter_enable_in			
 
-	///*** From the Controller ***///	
-	input  wire 					              	start_in,
-
-	input  wire [2:0]                               CTRL_s_counter_in,
-	input wire 										load_filter_enable_in,	// turn to 1 if change to new group of filer 			
-	
-    //*** From Global Buffer ***///			
+  	//     //*** From Global Buffer ***///			
 	input  wire 					            	IA_valid_in,	    //Input Activation
 	input  wire signed [DATA_WIDTH-1:0]             IA_in,			    
 	input  wire 					            	Filter_valid_in,	//Weights of filters
@@ -43,57 +38,60 @@ module PE
 	///*** To Adder Tree ***///
 	output wire signed [DATA_WIDTH-1:0]           	PE_out,
 	output wire 						           	PE_valid_out
-  
-);
- 
-	// *************** Wire signals *************** //
-	reg signed [DATA_WIDTH-1:0]						ia_mem_rg	[0:4];
-	reg signed [DATA_WIDTH-1:0]						fw_mem_rg	[0:4];
-	wire signed [DATA_WIDTH-1:0]           	  		D0_wr;
-	integer i;
 	
+);
+
+	// *************** Wire signals *************** //
+    reg signed [15:0]         			            fw_mem_rg[4:0];
+    reg signed [15:0]         			            ia_mem_rg[4:0];
+
+	wire  					           	  			D0_valid_wr;
+	wire signed [DATA_WIDTH-1:0]           	  		D0_wr;
+
+
 	// *************** Register signals *************** //		
     assign PE_out       = D0_wr;
-								
+    assign PE_valid_out = D0_valid_wr;
 
-	
-	// Calculation
+
+
 	ALU alu
 	(
-		.clk                    (clk                    ),
-		.rst_n                  (rst_n          		),
-		.ALU_valid_in			(ALU_valid_in			),
-		.Filter0_in             (fw_mem_rg[0]			),
-		.Filter1_in             (fw_mem_rg[1]			),
-		.Filter2_in             (fw_mem_rg[2]			),
-		.Filter3_in             (fw_mem_rg[3]			),
-		.Filter4_in             (fw_mem_rg[4]			),
-		.IA0_in					(ia_mem_rg[0]			),
-		.IA1_in					(ia_mem_rg[1]			),
-		.IA2_in					(ia_mem_rg[2]			),
-		.IA3_in					(ia_mem_rg[3]			),
-		.IA4_in					(ia_mem_rg[4]			),
+		.clk                    (clk                      	 ),
+		.rst_n                  (rst_n                    	 ),
+		.Filter_in              (fw_mem_rg[CTRL_m_count_in]	 ),
+		.IA_in                  (ia_mem_rg[CTRL_m_count_in]	 ),
+		.CTRL_m_count_in        (CTRL_m_count_in             ),
 
-		.ALU_data_out           (D0_wr                  )
+		.ALU_data_out           (D0_wr                       ),
+		.ALU_data_valid_out     (D0_valid_wr                 )
 	);
 
 	always @(posedge clk or negedge rst_n) begin
 		if (!rst_n) begin
-			for(i=0;i<5;i=i+1) begin
-				fw_mem_rg[i]	<=	0;
-				ia_mem_rg[i]	<=	0;
-			end
+			fw_mem_rg[0] <= 0;
+            fw_mem_rg[1] <= 0;
+            fw_mem_rg[2] <= 0;
+            fw_mem_rg[3] <= 0;
+            fw_mem_rg[4] <= 0;
+
+            ia_mem_rg[0] <= 0;
+            ia_mem_rg[1] <= 0;
+            ia_mem_rg[2] <= 0;
+            ia_mem_rg[3] <= 0;
+            ia_mem_rg[4] <= 0;
 		end	
 		else begin			
-			if(load_filter_enable_in&&Filter_valid_in) begin
-                fw_mem_rg[CTRL_s_counter_in] <= Filter_in;
-            end 
-            if(IA_valid_in) begin
-                ia_mem_rg[0]               <= ia_mem_rg[1];
-                ia_mem_rg[1]               <= ia_mem_rg[2];
-                ia_mem_rg[2]               <= ia_mem_rg[3];
-                ia_mem_rg[3]               <= ia_mem_rg[4];
-                ia_mem_rg[4]               <= IA_in;
+			if(load_filter_enable_in) begin
+                fw_mem_rg[CTRL_m_count_in] <= filter_in;
+            end else begin 
+                if(CTRL_m_count_in == 4) begin
+                    ia_mem_rg[0]               <= ia_mem_rg[1];
+                    ia_mem_rg[1]               <= ia_mem_rg[2];
+                    ia_mem_rg[2]               <= ia_mem_rg[3];
+                    ia_mem_rg[3]               <= ia_mem_rg[4];
+                    ia_mem_rg[4]               <= IA_in;
+                end 
             end
 		end
 	end 
